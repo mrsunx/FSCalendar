@@ -374,9 +374,11 @@
                 CGRect pageBounds = horizontal
                     ? CGRectMake(pageOrigin, 0, pageLength, self.collectionView.fs_height)
                     : CGRectMake(0, pageOrigin, self.collectionView.fs_width, pageLength);
-                // 半点取整可能让末格越过所属页；浮点运算还可能让邻页产生极小的交集。
-                // 容差随坐标量级变化，远小于一个像素，不改变日期格的视觉尺寸。
-                CGFloat tolerance = 8 * DBL_EPSILON * MAX(fabs(pageOrigin), pageLength);
+                // 半点取整可能让末格越过所属页，滚动位置的像素对齐还会露出邻页的极细边缘。
+                // 页面边缘留出半个像素，并吸收大坐标的浮点误差，避免把相邻周的一格算作可见。
+                CGFloat scale = self.collectionView.traitCollection.displayScale;
+                if (scale <= 0) scale = UIScreen.mainScreen.scale;
+                CGFloat tolerance = MAX(0.5 / scale, 8 * DBL_EPSILON * MAX(fabs(pageOrigin), pageLength));
                 pageBounds = CGRectInset(pageBounds, horizontal ? tolerance : 0, horizontal ? 0 : tolerance);
                 frame = CGRectIntersection(frame, pageBounds);
             }
