@@ -13,6 +13,7 @@
 #import "FSCalendarExtensions.h"
 #import "FSCalendarConstants.h"
 #import "FSCalendarSeparatorDecorationView.h"
+#import <float.h>
 
 #define kFSCalendarSeparatorInterRows @"FSCalendarSeparatorInterRows"
 #define kFSCalendarSeparatorInterColumns @"FSCalendarSeparatorInterColumns"
@@ -366,6 +367,19 @@
                     break;
             }
             CGRect frame = CGRectMake(x, y, width, height);
+            if (!self.calendar.floatingMode) {
+                BOOL horizontal = self.scrollDirection == UICollectionViewScrollDirectionHorizontal;
+                CGFloat pageLength = horizontal ? self.collectionView.fs_width : self.collectionView.fs_height;
+                CGFloat pageOrigin = indexPath.section * pageLength;
+                CGRect pageBounds = horizontal
+                    ? CGRectMake(pageOrigin, 0, pageLength, self.collectionView.fs_height)
+                    : CGRectMake(0, pageOrigin, self.collectionView.fs_width, pageLength);
+                // 半点取整可能让末格越过所属页；浮点运算还可能让邻页产生极小的交集。
+                // 容差随坐标量级变化，远小于一个像素，不改变日期格的视觉尺寸。
+                CGFloat tolerance = 8 * DBL_EPSILON * MAX(fabs(pageOrigin), pageLength);
+                pageBounds = CGRectInset(pageBounds, horizontal ? tolerance : 0, horizontal ? 0 : tolerance);
+                frame = CGRectIntersection(frame, pageBounds);
+            }
             frame;
         });
         attributes.frame = frame;
