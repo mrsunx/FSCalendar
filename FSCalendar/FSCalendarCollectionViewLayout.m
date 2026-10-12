@@ -378,7 +378,7 @@
                 // 页面边缘留出半个像素，并吸收大坐标的浮点误差，避免把相邻周的一格算作可见。
                 CGFloat scale = self.collectionView.traitCollection.displayScale;
                 if (scale <= 0) scale = UIScreen.mainScreen.scale;
-                CGFloat tolerance = MAX(0.5 / scale, 8 * DBL_EPSILON * MAX(fabs(pageOrigin), pageLength));
+                CGFloat tolerance = 0.5 / scale + 8 * DBL_EPSILON * MAX(fabs(pageOrigin), pageLength);
                 pageBounds = CGRectInset(pageBounds, horizontal ? tolerance : 0, horizontal ? 0 : tolerance);
                 frame = CGRectIntersection(frame, pageBounds);
             }
